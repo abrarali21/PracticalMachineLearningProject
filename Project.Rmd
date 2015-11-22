@@ -1,0 +1,45 @@
+---
+title: "Analysis of personal activity data to predict how well that activity is being executed"
+author: "Abrar Ali"
+date: "Sunday, November 22, 2015"
+output: html_document
+---
+
+# Summary
+The goal of this machine learning project was to use personal data collected from devices such as Jawbone Up, Nike FuelBand, and Fitbit and to quantify how well a particular activity was performed. The data was collected from accelerometers on the belt, forearm, arm, and dumbell of 6 participants and they were asked to perform barbell lifts correctly and incorrectly in 5 different ways. A model was built from the predictors in the training data set using the random forest algorithm and the predictors were chosen by excluding those that had a near zero variance. This model achieved close to 99% accuracy on the training data set and was now used to predict the outcome of how the lift was performed based on the test data set.  
+
+# Loading training and test data sets
+Read the training and testing data sets locally.
+
+```{r}
+library(caret)
+training <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+```
+
+# Preprocessing the data in the training data set
+Remove all NAs and set them to 0. Also remove the variable named X which indicates the id for each observation since it throws off the model if included in the analysis as a predictor because it's different for each observation. It's not feasible to use all 159 predictors in the model thus lets see how many we can eliminate by using near zero variance.
+
+```{r}
+training[is.na(training)] <- 0
+training <- training[,-1]
+nsv <- nearZeroVar(training, saveMetrics = FALSE)
+nsv
+td <- training[,-nsv]
+dim(td)
+selectVars <- names(td)
+selectVars
+```
+
+# Build the model
+We chose random forest for building the model because it gave the best accuracy on the training data set.
+```{r}
+model <- train(classe~., data=td, method="rf")
+model
+```
+
+# Now predict the outcome on the test data
+```{r}
+predOutcome <- predict(model, newdata=testing)
+predOutcome
+```
